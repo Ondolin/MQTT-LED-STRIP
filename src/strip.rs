@@ -1,11 +1,6 @@
 #![allow(dead_code)]
 
-use std::sync::{Arc, Mutex};
 use speedy2d::color::Color;
-use speedy2d::window::{WindowHandler, WindowHelper};
-use speedy2d::Graphics2D;
-use speedy2d::shape::Rectangle;
-use speedy2d::dimen::Vector2;
 
 #[derive(Clone)]
 pub struct Strip{
@@ -23,10 +18,17 @@ impl Strip {
         }
     }
 
+    pub fn get_pixel_length(&self) -> usize {
+        self.pixels.len()
+    }
+
+    pub fn get_pixel_size(&self) -> usize {
+        self.pixel_size
+    }
+
     pub fn get_pixels(&self) -> &Vec<Color> {
         &self.pixels
     }
-
 
     pub fn get_width(&self) -> usize {
         self.width.clone()
@@ -51,33 +53,5 @@ impl Strip {
     pub fn push_pixel(&mut self, color: Color) {
         self.pixels.splice(0..0, vec![color]);
         self.pixels.remove(self.pixels.len() - 1);
-    }
-}
-
-pub struct StripWindowHandler{
-    strip: Arc<Mutex<Strip>>,
-}
-
-impl StripWindowHandler {
-    pub fn new(strip: Arc<Mutex<Strip>>) -> StripWindowHandler {
-        StripWindowHandler {
-            strip,
-        }
-    }
-}
-
-impl WindowHandler for StripWindowHandler{
-    fn on_draw(&mut self, helper: &mut WindowHelper, graphics: &mut Graphics2D) {
-        graphics.clear_screen(Color::WHITE);
-        {
-            let loc_strip = self.strip.lock().unwrap();
-            for i in 0..loc_strip.pixels.len() {
-                let top = Vector2::new(i as f32 * loc_strip.pixel_size as f32, 0.0);
-                let bottom = Vector2::new((i+1) as f32 * loc_strip.pixel_size as f32, loc_strip.pixel_size as f32);
-                let rect = Rectangle::new(top, bottom);
-                graphics.draw_rectangle(rect, loc_strip.get_pixel(i));
-            }
-        }
-        helper.request_redraw()
     }
 }
