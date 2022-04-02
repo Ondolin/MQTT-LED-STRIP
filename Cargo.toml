@@ -1,0 +1,17 @@
+#![allow(non_snake_case)]
+[package]
+#[allow(non_snake_case)]
+name = "rust_lumibaer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+paho-mqtt = "0.10"
+ws2818-rgb-led-spi-driver = "2.0.0"
+speedy2d = "1.0.5"
+fps_clock = "2.0"
+futures = "0.3.4"
+prisma = "0.1.1"
+angular-units = "0.2.4"
