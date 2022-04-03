@@ -3,10 +3,13 @@ use angle::Deg;
 use prisma::{FromColor, Hsv, Rgb};
 use speedy2d::color::Color;
 use crate::Strip;
+use paho_mqtt as mqtt;
+use paho_mqtt::Message;
 
 pub trait Animation{
     fn initialize(&mut self, strip: Arc<Mutex<Strip>>);
     fn update(&mut self, strip: Arc<Mutex<Strip>>);
+    fn on_message(&mut self, message: mqtt::Message);
 }
 
 pub fn hsv_to_rgb(h: u32, s: f32, v: f32) -> Color {
@@ -28,5 +31,11 @@ impl Animation for Off{
         let mut strip = _strip.lock().unwrap();
         strip.reset();
     }
-    fn update(&mut self, _strip: Arc<Mutex<Strip>>){}
+
+    #[allow(unused_variables)]
+    fn update(&mut self, strip: Arc<Mutex<Strip>>){}
+
+    #[allow(unused_variables)]
+    fn on_message(&mut self, message: Message) {
+    }
 }

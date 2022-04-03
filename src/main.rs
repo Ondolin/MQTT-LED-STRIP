@@ -5,6 +5,8 @@ mod windowhandler;
 mod rainbow_chase;
 mod rainbow_fade;
 mod full_rainbow;
+mod fireworks;
+mod simple_color;
 
 use crate::strip::Strip;
 
@@ -15,6 +17,8 @@ use speedy2d::dimen::Vector2;
 
 use std::sync::{Arc, Mutex};
 use std::thread;
+use paho_mqtt::Message;
+use speedy2d::color::Color;
 use ws2818_rgb_led_spi_driver::adapter_gen::WS28xxAdapter;
 
 use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
@@ -23,6 +27,8 @@ use crate::animation::Off;
 use crate::full_rainbow::FullRainbow;
 use crate::rainbow_chase::RainbowChase;
 use crate::rainbow_fade::RainbowFade;
+use crate::fireworks::Firework;
+use crate::simple_color::SimpleColor;
 
 fn main() {
     // global parameter
@@ -69,7 +75,7 @@ fn main() {
 }
 
 fn animation(strip: Arc<Mutex<Strip>>) {
-    let start_status = 3;
+    let start_status = 5;
     let frames_per_second = 5;
 
 
@@ -79,11 +85,16 @@ fn animation(strip: Arc<Mutex<Strip>>) {
         width = strip.get_width();
     }
 
-    let status: Arc<Mutex<u32>> = Arc::new(Mutex::new(start_status));
+    let message_mutex: Arc<Mutex<Message>> = Arc::new(Mutex::new(Message::default()));
+    let message_clone = message_mutex.clone();
 
+    let new_message: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
+    let new_message_clone = new_message.clone();
+
+    let status: Arc<Mutex<u32>> = Arc::new(Mutex::new(start_status));
     let status_copy = status.clone();
     thread::spawn(move || {
-        mqtt::mqtt_setup(&status_copy);
+        mqtt::mqtt_setup(status_copy, message_clone, new_message_clone);
     });
     let mut fps = fps_clock::FpsClock::new(frames_per_second);
     let mut prev_status: u32 = u32::MAX;
@@ -92,7 +103,9 @@ fn animation(strip: Arc<Mutex<Strip>>) {
             Box::new(Off::new()),
             Box::new(RainbowChase::new(0, 30, width as u32)),
             Box::new(RainbowFade::new(0, 3)),
-            Box::new(FullRainbow::new(6))
+            Box::new(FullRainbow::new(6)),
+            Box::new(Firework::new()),
+            Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
         ];
     loop {
         fps.tick();
@@ -112,6 +125,16 @@ fn animation(strip: Arc<Mutex<Strip>>) {
         if local_status != prev_status {
             prev_status = local_status;
             animations[local_status as usize].initialize(strip.clone());
+        }
+        let has_changed;
+        {
+            let mut changed_lock = new_message.lock().unwrap();
+            has_changed = *changed_lock;
+            *changed_lock = false;
+        }
+        if has_changed{
+            let lock = message_mutex.lock().unwrap();
+            animations[local_status as usize].on_message(lock.clone());
         }
         animations[local_status as usize].update(strip.clone());
     }

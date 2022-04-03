@@ -43,10 +43,16 @@ impl Strip {
     }
 
     pub fn set_pixel(&mut self, x: usize, color: Color) {
+        if x >= self.width{
+            return;
+        }
         self.pixels[x] = color;
     }
 
     pub fn get_pixel(&self, x: usize) -> Color {
+        if x >= self.width {
+            return Color::WHITE;
+        }
         self.pixels[x]
     }
 
