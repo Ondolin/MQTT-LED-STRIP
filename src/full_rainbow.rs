@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use paho_mqtt::Message;
 use crate::animation::{Animation, hsv_to_rgb};
 use crate::Strip;
 
@@ -18,7 +17,7 @@ impl FullRainbow {
 }
 
 impl Animation for FullRainbow {
-    #[allow(unused)]
+    #[allow(unused_variables)]
     fn initialize(&mut self, strip: Arc<Mutex<Strip>>) {
         self.offset = 0;
     }
@@ -34,9 +33,5 @@ impl Animation for FullRainbow {
             current_hue += increment;
             current_hue %= 360.0;
         }
-    }
-
-    #[allow(unused_variables)]
-    fn on_message(&mut self, message: Message) {
     }
 }

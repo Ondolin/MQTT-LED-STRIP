@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use paho_mqtt::Message;
 use speedy2d::color::Color;
 use crate::animation::Animation;
 use crate::Strip;
@@ -52,10 +51,6 @@ impl Animation for Firework {
         }else{
             strip_lock.set_pixel(self.rocket.position as usize, Color::WHITE);
         }
-    }
-
-    #[allow(unused_variables)]
-    fn on_message(&mut self, message: Message) {
     }
 }
 

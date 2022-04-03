@@ -6,13 +6,15 @@ use speedy2d::color::Color;
 pub struct Strip{
     pixels: Vec<Color>,
     width: usize,
+    shut_down: bool,
 }
 
 impl Strip {
     pub fn new(width: usize) -> Strip {
         Strip {
-            pixels: vec![Color::from_rgb(0.0, 0.0, 0.0); width],
+            pixels: vec![Color::BLACK; width],
             width,
+            shut_down: false,
         }
     }
 
@@ -20,8 +22,16 @@ impl Strip {
         self.pixels.len()
     }
 
-    pub fn get_pixels(&self) -> &Vec<Color> {
-        &self.pixels
+    pub fn shutdown(&mut self) {
+        self.shut_down = true;
+    }
+
+    pub fn get_pixels(&self) -> Vec<Color> {
+        if self.shut_down{
+            vec![Color::BLACK; self.width]
+        }else {
+            self.pixels.clone()
+        }
     }
 
     pub fn get_width(&self) -> usize {
@@ -29,7 +39,7 @@ impl Strip {
     }
 
     pub fn reset(&mut self) {
-        self.pixels = vec![Color::from_rgb(0.0, 0.0, 0.0); self.width];
+        self.pixels = vec![Color::BLACK; self.width];
     }
 
     pub fn set_all(&mut self, color: Color) {
@@ -44,6 +54,9 @@ impl Strip {
     }
 
     pub fn get_pixel(&self, x: usize) -> Color {
+        if self.shut_down {
+            return Color::BLACK
+        }
         if x >= self.width {
             return Color::WHITE;
         }

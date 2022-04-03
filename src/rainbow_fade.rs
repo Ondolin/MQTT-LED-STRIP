@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use paho_mqtt::Message;
 use crate::animation::{Animation, hsv_to_rgb};
 use crate::Strip;
 
@@ -29,9 +28,5 @@ impl Animation for RainbowFade {
         self.current_color_hue += self.step_size;
         self.current_color_hue %= 360;
         strip.lock().unwrap().set_all(hsv_to_rgb(self.current_color_hue as u32, 1.0, 1.0));
-    }
-
-    #[allow(unused_variables)]
-    fn on_message(&mut self, message: Message) {
     }
 }

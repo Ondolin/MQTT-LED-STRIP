@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use paho_mqtt::Message;
 use crate::animation::{Animation, hsv_to_rgb};
 use crate::Strip;
 
@@ -43,9 +42,5 @@ impl Animation for RainbowChase{
             let mut strip = strip.lock().unwrap();
             strip.push_pixel(hsv_to_rgb(self.current_color_hue as u32, 1.0, 1.0));
         }
-    }
-
-    #[allow(unused_variables)]
-    fn on_message(&mut self, message: Message) {
     }
 }

@@ -18,6 +18,8 @@ use paho_mqtt::Message;
 use speedy2d::color::Color;
 use speedy2d::dimen::Vector2;
 
+use ctrlc;
+
 use ws2818_rgb_led_spi_driver::adapter_gen::WS28xxAdapter;
 use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
 use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
@@ -34,7 +36,7 @@ use crate::strip::Strip;
 fn main() {
     // global parameter
     let pixel_size = 30; // only important if use_window is true
-    let num_pixel = 50;
+    let num_pixel = 77;
     let use_window = true;
     let frames_per_second: u32 = 5;
     let start_status = 5;
@@ -57,6 +59,18 @@ fn main() {
             ];
         animation(strip_copy, frames_per_second, animations, start_status);
     });
+
+    // setup ctrlc handling
+    let ctrl_strip_copy = strip.clone();
+    let fps_copy = frames_per_second;
+    ctrlc::set_handler(move || {
+        {
+            let mut lock = ctrl_strip_copy.lock().unwrap();
+            lock.shutdown();
+        }
+        println!("\nShutting down...");
+        thread::sleep(std::time::Duration::from_millis((1500.0 / fps_copy as f32).ceil() as u64));
+    }).expect("Error setting Ctrl-C handler");
 
 
     if use_window {
