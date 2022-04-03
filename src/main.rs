@@ -12,7 +12,7 @@ extern crate fps_clock;
 extern crate angular_units as angle;
 
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::{thread, process};
 
 use paho_mqtt::Message;
 use speedy2d::color::Color;
@@ -70,6 +70,7 @@ fn main() {
         }
         println!("\nShutting down...");
         thread::sleep(std::time::Duration::from_millis((1500.0 / fps_copy as f32).ceil() as u64));
+        process::exit(0);
     }).expect("Error setting Ctrl-C handler");
 
 

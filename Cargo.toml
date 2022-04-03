@@ -16,4 +16,4 @@ futures = "0.3.4"
 prisma = "0.1.1"
 angular-units = "0.2.4"
 rand = "0.8.5"
-ctrlc = "3.2.1"
+ctrlc = { version = "3.2.1", features = ["termination"] }
