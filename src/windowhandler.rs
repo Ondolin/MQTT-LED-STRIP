@@ -8,12 +8,14 @@ use crate::Strip;
 
 pub struct StripWindowHandler{
     strip: Arc<Mutex<Strip>>,
+    pixel_size: u32,
 }
 
 impl StripWindowHandler {
-    pub fn new(strip: Arc<Mutex<Strip>>) -> StripWindowHandler {
+    pub fn new(strip: Arc<Mutex<Strip>>, pixel_size: u32) -> StripWindowHandler {
         StripWindowHandler {
             strip,
+            pixel_size,
         }
     }
 }
@@ -24,8 +26,8 @@ impl WindowHandler for StripWindowHandler{
         {
             let loc_strip = self.strip.lock().unwrap();
             for i in 0..loc_strip.get_pixel_length() {
-                let top = Vector2::new(i as f32 * loc_strip.get_pixel_size() as f32, 0.0);
-                let bottom = Vector2::new((i+1) as f32 * loc_strip.get_pixel_size() as f32, loc_strip.get_pixel_size() as f32);
+                let top = Vector2::new(i as f32 * self.pixel_size as f32, 0.0);
+                let bottom = Vector2::new((i+1) as f32 * self.pixel_size as f32, self.pixel_size as f32);
                 let rect = Rectangle::new(top, bottom);
                 graphics.draw_rectangle(rect, loc_strip.get_pixel(i));
             }

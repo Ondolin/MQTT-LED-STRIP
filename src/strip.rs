@@ -6,24 +6,18 @@ use speedy2d::color::Color;
 pub struct Strip{
     pixels: Vec<Color>,
     width: usize,
-    pixel_size: usize,
 }
 
 impl Strip {
-    pub fn new(width: usize, pixel_size: usize) -> Strip {
+    pub fn new(width: usize) -> Strip {
         Strip {
             pixels: vec![Color::from_rgb(0.0, 0.0, 0.0); width],
             width,
-            pixel_size,
         }
     }
 
     pub fn get_pixel_length(&self) -> usize {
         self.pixels.len()
-    }
-
-    pub fn get_pixel_size(&self) -> usize {
-        self.pixel_size
     }
 
     pub fn get_pixels(&self) -> &Vec<Color> {

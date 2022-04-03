@@ -8,54 +8,66 @@ mod full_rainbow;
 mod fireworks;
 mod simple_color;
 
-use crate::strip::Strip;
-
 extern crate fps_clock;
 extern crate angular_units as angle;
 
-use speedy2d::dimen::Vector2;
-
 use std::sync::{Arc, Mutex};
 use std::thread;
+
 use paho_mqtt::Message;
 use speedy2d::color::Color;
-use ws2818_rgb_led_spi_driver::adapter_gen::WS28xxAdapter;
+use speedy2d::dimen::Vector2;
 
+use ws2818_rgb_led_spi_driver::adapter_gen::WS28xxAdapter;
 use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
 use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
+
+use crate::animation::Animation;
 use crate::animation::Off;
 use crate::full_rainbow::FullRainbow;
 use crate::rainbow_chase::RainbowChase;
 use crate::rainbow_fade::RainbowFade;
 use crate::fireworks::Firework;
 use crate::simple_color::SimpleColor;
+use crate::strip::Strip;
 
 fn main() {
     // global parameter
-    let pixel_size = 30;
+    let pixel_size = 30; // only important if use_window is true
     let num_pixel = 50;
     let use_window = true;
-    let neopixel_frames_per_second = 5;
+    let frames_per_second: u32 = 5;
+    let start_status = 5;
+    // edit the animations down below
 
     // initialize everything
-    let strip = Arc::new(Mutex::new(strip::Strip::new(num_pixel, pixel_size)));
+    let strip = Arc::new(Mutex::new(strip::Strip::new(num_pixel)));
     let strip_copy = strip.clone();
 
     // animation thread
     thread::spawn(move || {
-        animation(strip_copy);
+        let animations: Vec<Box<dyn Animation>> =
+            vec![
+                Box::new(Off::new()),
+                Box::new(RainbowChase::new(0, 30, num_pixel as u32)),
+                Box::new(RainbowFade::new(0, 3)),
+                Box::new(FullRainbow::new(6)),
+                Box::new(Firework::new()),
+                Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
+            ];
+        animation(strip_copy, frames_per_second, animations, start_status);
     });
 
 
     if use_window {
         // display thread
         let window = speedy2d::Window::new_centered("Strip", Vector2::new(num_pixel as u32 * pixel_size as u32, pixel_size as u32)).unwrap();
-        let stripwindowhandler = windowhandler::StripWindowHandler::new(strip);
+        let stripwindowhandler = windowhandler::StripWindowHandler::new(strip, pixel_size);
         window.run_loop(stripwindowhandler);
     }
     else{
         // use neopixel
-        let mut fps = fps_clock::FpsClock::new(neopixel_frames_per_second);
+        let mut fps = fps_clock::FpsClock::new(frames_per_second);
         let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
         loop{
             let local_strip;
@@ -74,17 +86,7 @@ fn main() {
     }
 }
 
-fn animation(strip: Arc<Mutex<Strip>>) {
-    let start_status = 5;
-    let frames_per_second = 5;
-
-
-    let width;
-    {
-        let strip = strip.lock().unwrap();
-        width = strip.get_width();
-    }
-
+fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: Vec<Box<dyn Animation>>, start_status: u32) {
     let message_mutex: Arc<Mutex<Message>> = Arc::new(Mutex::new(Message::default()));
     let message_clone = message_mutex.clone();
 
@@ -98,15 +100,6 @@ fn animation(strip: Arc<Mutex<Strip>>) {
     });
     let mut fps = fps_clock::FpsClock::new(frames_per_second);
     let mut prev_status: u32 = u32::MAX;
-    let mut animations: Vec<Box<dyn animation::Animation>> =
-        vec![
-            Box::new(Off::new()),
-            Box::new(RainbowChase::new(0, 30, width as u32)),
-            Box::new(RainbowFade::new(0, 3)),
-            Box::new(FullRainbow::new(6)),
-            Box::new(Firework::new()),
-            Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
-        ];
     loop {
         fps.tick();
         let local_status;
