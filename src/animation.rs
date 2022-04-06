@@ -9,6 +9,7 @@ pub trait Animation{
     fn initialize(&mut self, strip: Arc<Mutex<Strip>>){}
     fn update(&mut self, strip: Arc<Mutex<Strip>>){}
     fn on_message(&mut self, message: mqtt::Message){}
+    fn terminate(&mut self){}
 }
 
 pub fn hsv_to_rgb(h: u32, s: f32, v: f32) -> Color {
