@@ -7,7 +7,7 @@ mod rainbow_fade;
 mod full_rainbow;
 mod fireworks;
 mod simple_color;
-mod audio_visualizer;
+//mod audio_visualizer;
 
 extern crate fps_clock;
 extern crate angular_units as angle;
@@ -33,7 +33,7 @@ use crate::rainbow_fade::RainbowFade;
 use crate::fireworks::Firework;
 use crate::simple_color::SimpleColor;
 use crate::strip::Strip;
-use crate::audio_visualizer::AudioVisualizer;
+//use crate::audio_visualizer::AudioVisualizer;
 
 
 
@@ -43,7 +43,7 @@ fn main() {
     let num_pixel = 77;
     let use_window = true;
     let frames_per_second: u32 = 20;
-    let start_status = 6;
+    let start_status = 0;
     // edit the animations down below
 
     // initialize everything
@@ -60,7 +60,7 @@ fn main() {
                 Box::new(FullRainbow::new(6)),
                 Box::new(Firework::new()),
                 Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
-                Box::new(AudioVisualizer::new()),
+                //Box::new(AudioVisualizer::new()),
             ];
         animation(strip_copy, frames_per_second, animations, start_status);
     });
