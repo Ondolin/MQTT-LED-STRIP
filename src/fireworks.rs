@@ -32,11 +32,11 @@ impl Firework{
 
 impl Animation for Firework {
     #[allow(unused_variables)]
-    fn initialize(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.loc_initialize();
     }
 
-    fn update(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         if self.rocket.update(){
             self.loc_initialize();
         }
@@ -45,7 +45,7 @@ impl Animation for Firework {
         if self.rocket.exploded{
             for spark in self.rocket.sparks.iter(){
                 if spark.time_to_live > 0{
-                    strip_lock.set_pixel(spark.position as usize, spark.color);
+                    strip_lock.set_pixel(spark.position as usize, Color::from_rgb(spark.color.r() * brightness, spark.color.g() * brightness, spark.color.b() * brightness));
                 }
             }
         }else{

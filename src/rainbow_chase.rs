@@ -23,16 +23,16 @@ impl RainbowChase{
 }
 
 impl Animation for RainbowChase{
-    fn initialize(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.current_color_hue = (self.initial_color_hue + self.step_size) % 360;
         self.current_color_step = 0;
         {
             let mut strip = strip.lock().unwrap();
-            strip.set_all(hsv_to_rgb(self.initial_color_hue as u32, 1.0, 1.0));
+            strip.set_all(hsv_to_rgb(self.initial_color_hue as u32, 1.0, brightness));
         }
     }
 
-    fn update(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         if self.current_color_step == self.width {
             self.current_color_hue = (self.current_color_hue + self.step_size) % 360;
             self.current_color_step = 0;
@@ -40,7 +40,7 @@ impl Animation for RainbowChase{
         self.current_color_step += 1;
         {
             let mut strip = strip.lock().unwrap();
-            strip.push_pixel(hsv_to_rgb(self.current_color_hue as u32, 1.0, 1.0));
+            strip.push_pixel(hsv_to_rgb(self.current_color_hue as u32, 1.0, brightness));
         }
     }
 }

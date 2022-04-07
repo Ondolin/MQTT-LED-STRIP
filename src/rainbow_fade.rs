@@ -19,14 +19,14 @@ impl RainbowFade {
 }
 
 impl Animation for RainbowFade {
-    #[allow(unused)]
-    fn initialize(&mut self, strip: Arc<Mutex<Strip>>) {
+    #[allow(unused_variables)]
+    fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.current_color_hue = self.initial_color_hue;
     }
 
-    fn update(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.current_color_hue += self.step_size;
         self.current_color_hue %= 360;
-        strip.lock().unwrap().set_all(hsv_to_rgb(self.current_color_hue as u32, 1.0, 1.0));
+        strip.lock().unwrap().set_all(hsv_to_rgb(self.current_color_hue as u32, 1.0, brightness));
     }
 }

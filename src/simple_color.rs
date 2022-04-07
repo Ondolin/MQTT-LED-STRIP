@@ -17,14 +17,14 @@ impl SimpleColor{
 }
 
 impl Animation for SimpleColor{
-    fn initialize(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         let mut lock = strip.lock().unwrap();
-        lock.set_all(self.color);
+        lock.set_all(Color::from_rgb(self.color.r() * brightness, self.color.g() * brightness, self.color.b() * brightness));
     }
 
-    fn update(&mut self, strip: Arc<Mutex<Strip>>) {
+    fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         let mut lock = strip.lock().unwrap();
-        lock.set_all(self.color);
+        lock.set_all(Color::from_rgb(self.color.r() * brightness, self.color.g() * brightness, self.color.b() * brightness));
     }
 
     fn on_message(&mut self, message: Message) {

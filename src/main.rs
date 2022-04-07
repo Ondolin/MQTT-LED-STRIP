@@ -57,7 +57,7 @@ fn main() {
                 Box::new(Off::new()),
                 Box::new(RainbowChase::new(0, 30, num_pixel as u32)),
                 Box::new(RainbowFade::new(0, 3)),
-                Box::new(FullRainbow::new(6)),
+                //Box::new(FullRainbow::new(6)),
                 Box::new(Firework::new()),
                 Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
                 //Box::new(AudioVisualizer::new()),
@@ -114,9 +114,11 @@ fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: V
     let new_message_clone = new_message.clone();
 
     let status: Arc<Mutex<u32>> = Arc::new(Mutex::new(start_status));
-    let status_copy = status.clone();
+    let status_clone = status.clone();
+    let brightness: Arc<Mutex<f32>> = Arc::new(Mutex::new(1.0));
+    let brightness_clone = brightness.clone();
     thread::spawn(move || {
-        mqtt::mqtt_setup(status_copy, message_clone, new_message_clone);
+        mqtt::mqtt_setup(brightness_clone, status_clone, message_clone, new_message_clone);
     });
     let mut fps = fps_clock::FpsClock::new(frames_per_second);
     let mut prev_status: u32 = u32::MAX;
@@ -135,12 +137,17 @@ fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: V
             }
             continue;
         }
+        let bri_copy;
+        {
+            let lock = brightness.lock().unwrap();
+            bri_copy = *lock;
+        }
         if local_status != prev_status {
             if prev_status != u32::MAX {
                 animations[prev_status as usize].terminate();
             }
             prev_status = local_status;
-            animations[local_status as usize].initialize(strip.clone());
+            animations[local_status as usize].initialize(strip.clone(), bri_copy);
         }
         let has_changed;
         {
@@ -152,6 +159,6 @@ fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: V
             let lock = message_mutex.lock().unwrap();
             animations[local_status as usize].on_message(lock.clone());
         }
-        animations[local_status as usize].update(strip.clone());
+        animations[local_status as usize].update(strip.clone(), bri_copy);
     }
 }

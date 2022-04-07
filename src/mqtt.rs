@@ -5,10 +5,10 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use paho_mqtt::Message;
 
-const TOPICS: &[&str] = &["/Lumibaer/status", "/Lumibaer/parameter", "/Lumibaer/parameter/#"];
-const QOS: &[i32] = &[1, 1, 1];
+const TOPICS: &[&str] = &["/Lumibaer/status", "/Lumibaer/brightness", "/Lumibaer/parameter", "/Lumibaer/parameter/#"];
+const QOS: &[i32] = &[1, 1, 1, 1];
 
-pub(crate) fn mqtt_setup(status: Arc<Mutex<u32>>, message: Arc<Mutex<Message>>, changed: Arc<Mutex<bool>>) {
+pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, message: Arc<Mutex<Message>>, changed: Arc<Mutex<bool>>) {
     let host = "tcp://localhost:1883".to_string();
     let create_opts = mqtt::CreateOptionsBuilder::new()
         .server_uri(host)
@@ -46,6 +46,11 @@ pub(crate) fn mqtt_setup(status: Arc<Mutex<u32>>, message: Arc<Mutex<Message>>, 
                     if let Ok(x) = msg.payload_str().parse::<u32>() {
                         let mut lock = status.lock().unwrap();
                         *lock = x;
+                    }
+                }else if msg.topic() == TOPICS[1]{
+                    if let Ok(x) = msg.payload_str().parse::<i32>() {
+                        let mut lock = brightness.lock().unwrap();
+                        *lock = f32::min(f32::max(x as f32 / 100.0, 0.0), 1.0);
                     }
                 }else{
                     {
