@@ -6,7 +6,8 @@ use rand::Rng;
 use rand::rngs::ThreadRng;
 
 pub struct Firework{
-    rocket: FireworkRocket
+    rocket: FireworkRocket,
+    cycle: u32,
 }
 
 impl Firework{
@@ -17,14 +18,15 @@ impl Firework{
     fn random_rocket() -> FireworkRocket{
         let speed_range = (3, 6);
         let speed = rand::thread_rng().gen_range(speed_range.0..speed_range.1);
-        let time_to_explode_range = (5, 9);
+        let time_to_explode_range = (8, 17);
         FireworkRocket::new(speed, time_to_explode_range)
     }
 
 
     pub fn new() -> Firework{
         Firework{
-            rocket: Firework::random_rocket()
+            rocket: Firework::random_rocket(),
+            cycle: 0,
         }
     }
 
@@ -37,6 +39,11 @@ impl Animation for Firework {
     }
 
     fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
+        self.cycle += 1;
+        if self.cycle < 3{
+            return;
+        }
+        self.cycle = 0;
         if self.rocket.update(){
             self.loc_initialize();
         }
@@ -76,18 +83,18 @@ impl FireworkRocket{
 
     fn update(&mut self) -> bool{
         if self.exploded{
-            let mut all_done = false;
+            let mut all_done = true;
             for spark in &mut self.sparks{
-                all_done = all_done | spark.update();
+                all_done = all_done & spark.update();
             }
             return all_done;
         }else{
             self.position += self.speed;
             self.time_to_explode -= 1;
             let color_selection: Vec<Color> = vec![Color::RED, Color::BLUE, Color::MAGENTA];
-            let time_range = (4, 10);
-            let speed_range = (-2,4);
-            let num_sparks = 10;
+            let time_range = (5, 15);
+            let speed_range = (-6,2);
+            let num_sparks = 15;
             if self.time_to_explode == 0{
                 self.exploded = true;
                 let mut rng = rand::thread_rng();
