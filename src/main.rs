@@ -7,6 +7,7 @@ mod rainbow_fade;
 mod full_rainbow;
 mod fireworks;
 mod simple_color;
+mod beat_detection_reciever;
 //mod audio_visualizer;
 
 extern crate fps_clock;
@@ -33,6 +34,7 @@ use crate::rainbow_fade::RainbowFade;
 use crate::fireworks::Firework;
 use crate::simple_color::SimpleColor;
 use crate::strip::Strip;
+use crate::beat_detection_reciever::BeatDetector;
 //use crate::audio_visualizer::AudioVisualizer;
 
 
@@ -60,6 +62,7 @@ fn main() {
                 //Box::new(FullRainbow::new(6)),
                 Box::new(Firework::new()),
                 Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
+                Box::new(BeatDetector::new()),
                 //Box::new(AudioVisualizer::new()),
             ];
         animation(strip_copy, frames_per_second, animations, start_status);

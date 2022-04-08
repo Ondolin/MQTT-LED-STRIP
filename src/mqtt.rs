@@ -48,7 +48,7 @@ pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, m
                         *lock = x;
                     }
                 }else if msg.topic() == TOPICS[1]{
-                    if let Ok(x) = msg.payload_str().parse::<i32>() {
+                    if let Ok(x) = msg.payload_str().parse::<f32>() {
                         let mut lock = brightness.lock().unwrap();
                         *lock = f32::min(f32::max(x as f32 / 100.0, 0.0), 1.0);
                     }
