@@ -1,4 +1,4 @@
-# RustLumibaer
+# RustLuminED
 
 This is a small rewrite of JB-LED library without the multiprocessing part in Rust.
 It's supposed to be used for:
