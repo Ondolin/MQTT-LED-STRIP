@@ -37,9 +37,17 @@ use crate::strip::Strip;
 use crate::beat_detection_reciever::BeatDetector;
 //use crate::audio_visualizer::AudioVisualizer;
 
+use dotenv::dotenv;
 
 
 fn main() {
+
+    dotenv().ok();
+
+    std::env::var("MQTT_BROKER_ADDRESS").expect("You need to specify an MQTT_BROKER_ADRESS!");
+    std::env::var("MQTT_USERNAME").expect("You need to specify an MQTT_USERNAME!");
+    std::env::var("MQTT_CLIENT_PASSWORD").expect("You need to specify an MQTT_CLIENT_PASSWORD!");
+
     // global parameter
     let pixel_size = 30; // only important if use_window is true
     let num_pixel = 77;

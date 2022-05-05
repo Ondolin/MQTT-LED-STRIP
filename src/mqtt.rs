@@ -9,10 +9,10 @@ const TOPICS: &[&str] = &["/Lumibaer/status", "/Lumibaer/brightness", "/Lumibaer
 const QOS: &[i32] = &[1, 1, 1, 1];
 
 pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, message: Arc<Mutex<Message>>, changed: Arc<Mutex<bool>>) {
-    let host = "tcp://localhost:1883".to_string();
     let create_opts = mqtt::CreateOptionsBuilder::new()
-        .server_uri(host)
-        .client_id("Lumibaer")
+        .server_uri(std::env::var("MQTT_BROKER_ADDRESS").unwrap())
+        .mqtt_version(mqtt::MQTT_VERSION_5)
+        .client_id("LED-STRIP")
         .finalize();
 
     // Create the client connection
@@ -26,7 +26,9 @@ pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, m
 
         let conn_opts = mqtt::ConnectOptionsBuilder::new()
             .keep_alive_interval(Duration::from_secs(30))
-            .mqtt_version(mqtt::MQTT_VERSION_3_1_1)
+            .mqtt_version(mqtt::MQTT_VERSION_5)
+            .user_name(std::env::var("MQTT_USERNAME").unwrap())
+            .password(std::env::var("MQTT_CLIENT_PASSWORD").unwrap())
             .clean_session(false)
             .finalize();
 
