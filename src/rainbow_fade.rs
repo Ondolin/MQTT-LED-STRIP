@@ -1,6 +1,6 @@
-use std::sync::{Arc, Mutex};
-use crate::animation::{Animation, hsv_to_rgb};
+use crate::animation::{hsv_to_rgb, Animation};
 use crate::Strip;
+use std::sync::{Arc, Mutex};
 
 pub struct RainbowFade {
     current_color_hue: u16,
@@ -27,6 +27,9 @@ impl Animation for RainbowFade {
     fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.current_color_hue += self.step_size;
         self.current_color_hue %= 360;
-        strip.lock().unwrap().set_all(hsv_to_rgb(self.current_color_hue as u32, 1.0, brightness));
+        strip
+            .lock()
+            .unwrap()
+            .set_all(hsv_to_rgb(self.current_color_hue as u32, 1.0, brightness));
     }
 }

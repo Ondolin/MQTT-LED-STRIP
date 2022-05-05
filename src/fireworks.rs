@@ -1,35 +1,33 @@
-use std::sync::{Arc, Mutex};
-use speedy2d::color::Color;
 use crate::animation::Animation;
 use crate::Strip;
-use rand::Rng;
 use rand::rngs::ThreadRng;
+use rand::Rng;
+use speedy2d::color::Color;
+use std::sync::{Arc, Mutex};
 
-pub struct Firework{
+pub struct Firework {
     rocket: FireworkRocket,
     cycle: u32,
 }
 
-impl Firework{
-    fn loc_initialize(&mut self){
+impl Firework {
+    fn loc_initialize(&mut self) {
         self.rocket = Firework::random_rocket();
     }
 
-    fn random_rocket() -> FireworkRocket{
+    fn random_rocket() -> FireworkRocket {
         let speed_range = (3, 6);
         let speed = rand::thread_rng().gen_range(speed_range.0..speed_range.1);
         let time_to_explode_range = (8, 17);
         FireworkRocket::new(speed, time_to_explode_range)
     }
 
-
-    pub fn new() -> Firework{
-        Firework{
+    pub fn new() -> Firework {
+        Firework {
             rocket: Firework::random_rocket(),
             cycle: 0,
         }
     }
-
 }
 
 impl Animation for Firework {
@@ -40,28 +38,35 @@ impl Animation for Firework {
 
     fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.cycle += 1;
-        if self.cycle < 3{
+        if self.cycle < 3 {
             return;
         }
         self.cycle = 0;
-        if self.rocket.update(){
+        if self.rocket.update() {
             self.loc_initialize();
         }
         let mut strip_lock = strip.lock().unwrap();
         strip_lock.reset();
-        if self.rocket.exploded{
-            for spark in self.rocket.sparks.iter(){
-                if spark.time_to_live > 0{
-                    strip_lock.set_pixel(spark.position as usize, Color::from_rgb(spark.color.r() * brightness, spark.color.g() * brightness, spark.color.b() * brightness));
+        if self.rocket.exploded {
+            for spark in self.rocket.sparks.iter() {
+                if spark.time_to_live > 0 {
+                    strip_lock.set_pixel(
+                        spark.position as usize,
+                        Color::from_rgb(
+                            spark.color.r() * brightness,
+                            spark.color.g() * brightness,
+                            spark.color.b() * brightness,
+                        ),
+                    );
                 }
             }
-        }else{
+        } else {
             strip_lock.set_pixel(self.rocket.position as usize, Color::WHITE);
         }
     }
 }
 
-struct FireworkRocket{
+struct FireworkRocket {
     exploded: bool,
     position: u32,
     sparks: Vec<FireworkSpark>,
@@ -69,37 +74,44 @@ struct FireworkRocket{
     time_to_explode: u32,
 }
 
-impl FireworkRocket{
-    fn new(speed: u32, time_to_explode_range: (u32, u32)) -> FireworkRocket{
-        let time_to_explode = rand::thread_rng().gen_range(time_to_explode_range.0..time_to_explode_range.1);
-        FireworkRocket{
+impl FireworkRocket {
+    fn new(speed: u32, time_to_explode_range: (u32, u32)) -> FireworkRocket {
+        let time_to_explode =
+            rand::thread_rng().gen_range(time_to_explode_range.0..time_to_explode_range.1);
+        FireworkRocket {
             exploded: false,
             position: 0,
             sparks: Vec::new(),
             speed,
-            time_to_explode
+            time_to_explode,
         }
     }
 
-    fn update(&mut self) -> bool{
-        if self.exploded{
+    fn update(&mut self) -> bool {
+        if self.exploded {
             let mut all_done = true;
-            for spark in &mut self.sparks{
+            for spark in &mut self.sparks {
                 all_done = all_done & spark.update();
             }
             return all_done;
-        }else{
+        } else {
             self.position += self.speed;
             self.time_to_explode -= 1;
             let color_selection: Vec<Color> = vec![Color::RED, Color::BLUE, Color::MAGENTA];
             let time_range = (5, 15);
-            let speed_range = (-6,2);
+            let speed_range = (-6, 2);
             let num_sparks = 15;
-            if self.time_to_explode == 0{
+            if self.time_to_explode == 0 {
                 self.exploded = true;
                 let mut rng = rand::thread_rng();
-                for _ in 0..num_sparks{
-                    self.sparks.push(FireworkSpark::new(self.position, color_selection.clone(), time_range, speed_range, &mut rng));
+                for _ in 0..num_sparks {
+                    self.sparks.push(FireworkSpark::new(
+                        self.position,
+                        color_selection.clone(),
+                        time_range,
+                        speed_range,
+                        &mut rng,
+                    ));
                 }
             }
             return false;
@@ -107,7 +119,7 @@ impl FireworkRocket{
     }
 }
 
-struct FireworkSpark{
+struct FireworkSpark {
     position: u32,
     color: Color,
     speed: i32,
@@ -115,7 +127,13 @@ struct FireworkSpark{
 }
 
 impl FireworkSpark {
-    fn new(position: u32, color_selection: Vec<Color>, time_range: (u32, u32), speed_range: (i32, i32), rng: &mut ThreadRng) -> FireworkSpark {
+    fn new(
+        position: u32,
+        color_selection: Vec<Color>,
+        time_range: (u32, u32),
+        speed_range: (i32, i32),
+        rng: &mut ThreadRng,
+    ) -> FireworkSpark {
         let color = color_selection[rng.gen_range(0..color_selection.len())];
         let time_to_live = rng.gen_range(time_range.0..time_range.1);
         let speed = rng.gen_range(speed_range.0..speed_range.1);
@@ -128,17 +146,16 @@ impl FireworkSpark {
     }
 
     fn update(&mut self) -> bool {
-        if self.time_to_live == 0{
+        if self.time_to_live == 0 {
             self.color = Color::BLACK;
             return true;
-        }else{
+        } else {
             self.time_to_live -= 1;
             let new_position = self.position as i32 + self.speed;
-            if new_position < 0{
+            if new_position < 0 {
                 self.position = 0;
                 self.speed = 0;
-
-            }else{
+            } else {
                 self.position = new_position as u32;
             }
             return false;

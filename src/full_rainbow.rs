@@ -1,8 +1,8 @@
-use std::sync::{Arc, Mutex};
-use crate::animation::{Animation, hsv_to_rgb};
+use crate::animation::{hsv_to_rgb, Animation};
 use crate::Strip;
+use std::sync::{Arc, Mutex};
 
-pub struct FullRainbow{
+pub struct FullRainbow {
     offset: u32,
     step_size: u32,
 }
@@ -29,7 +29,10 @@ impl Animation for FullRainbow {
         let mut strip = strip.lock().unwrap();
         let increment = 360.0 / strip.get_pixel_length() as f64;
         for i in 0..strip.get_pixel_length() {
-            strip.set_pixel(i as usize, hsv_to_rgb(current_hue.floor() as u32, 1.0, brightness));
+            strip.set_pixel(
+                i as usize,
+                hsv_to_rgb(current_hue.floor() as u32, 1.0, brightness),
+            );
             current_hue += increment;
             current_hue %= 360.0;
         }

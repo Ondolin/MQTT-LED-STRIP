@@ -1,20 +1,20 @@
-mod strip;
-mod mqtt;
 mod animation;
-mod windowhandler;
+mod beat_detection_reciever;
+mod fireworks;
+mod full_rainbow;
+mod mqtt;
 mod rainbow_chase;
 mod rainbow_fade;
-mod full_rainbow;
-mod fireworks;
 mod simple_color;
-mod beat_detection_reciever;
+mod strip;
+mod windowhandler;
 //mod audio_visualizer;
 
-extern crate fps_clock;
 extern crate angular_units as angle;
+extern crate fps_clock;
 
 use std::sync::{Arc, Mutex};
-use std::{thread, process};
+use std::{process, thread};
 
 use paho_mqtt::Message;
 use speedy2d::color::Color;
@@ -28,20 +28,18 @@ use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
 use crate::animation::Animation;
 use crate::animation::Off;
+use crate::beat_detection_reciever::BeatDetector;
+use crate::fireworks::Firework;
 use crate::full_rainbow::FullRainbow;
 use crate::rainbow_chase::RainbowChase;
 use crate::rainbow_fade::RainbowFade;
-use crate::fireworks::Firework;
 use crate::simple_color::SimpleColor;
 use crate::strip::Strip;
-use crate::beat_detection_reciever::BeatDetector;
 //use crate::audio_visualizer::AudioVisualizer;
 
 use dotenv::dotenv;
 
-
 fn main() {
-
     dotenv().ok();
 
     std::env::var("MQTT_BROKER_ADDRESS").expect("You need to specify an MQTT_BROKER_ADRESS!");
@@ -62,17 +60,16 @@ fn main() {
 
     // animation thread
     thread::spawn(move || {
-        let animations: Vec<Box<dyn Animation>> =
-            vec![
-                Box::new(Off::new()),
-                Box::new(RainbowChase::new(0, 30, num_pixel as u32)),
-                Box::new(RainbowFade::new(0, 3)),
-                //Box::new(FullRainbow::new(6)),
-                Box::new(Firework::new()),
-                Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
-                Box::new(BeatDetector::new()),
-                //Box::new(AudioVisualizer::new()),
-            ];
+        let animations: Vec<Box<dyn Animation>> = vec![
+            Box::new(Off::new()),
+            Box::new(RainbowChase::new(0, 30, num_pixel as u32)),
+            Box::new(RainbowFade::new(0, 3)),
+            //Box::new(FullRainbow::new(6)),
+            Box::new(Firework::new()),
+            Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
+            Box::new(BeatDetector::new()),
+            //Box::new(AudioVisualizer::new()),
+        ];
         animation(strip_copy, frames_per_second, animations, start_status);
     });
 
@@ -85,30 +82,39 @@ fn main() {
             lock.shutdown();
         }
         println!("\nShutting down...");
-        thread::sleep(std::time::Duration::from_millis((1500.0 / fps_copy as f32).ceil() as u64));
+        thread::sleep(std::time::Duration::from_millis(
+            (1500.0 / fps_copy as f32).ceil() as u64,
+        ));
         process::exit(0);
-    }).expect("Error setting Ctrl-C handler");
-
+    })
+    .expect("Error setting Ctrl-C handler");
 
     if use_window {
         // display thread
-        let window = speedy2d::Window::new_centered("Strip", Vector2::new(num_pixel as u32 * pixel_size as u32, pixel_size as u32)).unwrap();
+        let window = speedy2d::Window::new_centered(
+            "Strip",
+            Vector2::new(num_pixel as u32 * pixel_size as u32, pixel_size as u32),
+        )
+        .unwrap();
         let stripwindowhandler = windowhandler::StripWindowHandler::new(strip, pixel_size);
         window.run_loop(stripwindowhandler);
-    }
-    else{
+    } else {
         // use neopixel
         let mut fps = fps_clock::FpsClock::new(frames_per_second);
         let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
-        loop{
+        loop {
             let local_strip;
             {
                 let strip = strip.lock().unwrap();
                 local_strip = (*strip).clone();
             }
             let mut spi_encoded_rgb_bits = vec![];
-            for pixel in local_strip.get_pixels().iter(){
-                let rgb = encode_rgb((pixel.r() * 255.0).floor() as u8 , (pixel.g() * 255.0).floor() as u8, (pixel.b() * 255.0).floor() as u8);
+            for pixel in local_strip.get_pixels().iter() {
+                let rgb = encode_rgb(
+                    (pixel.r() * 255.0).floor() as u8,
+                    (pixel.g() * 255.0).floor() as u8,
+                    (pixel.b() * 255.0).floor() as u8,
+                );
                 spi_encoded_rgb_bits.extend_from_slice(&rgb);
             }
             adapter.write_encoded_rgb(&spi_encoded_rgb_bits).unwrap();
@@ -117,7 +123,12 @@ fn main() {
     }
 }
 
-fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: Vec<Box<dyn Animation>>, start_status: u32) {
+fn animation(
+    strip: Arc<Mutex<Strip>>,
+    frames_per_second: u32,
+    mut animations: Vec<Box<dyn Animation>>,
+    start_status: u32,
+) {
     let message_mutex: Arc<Mutex<Message>> = Arc::new(Mutex::new(Message::default()));
     let message_clone = message_mutex.clone();
 
@@ -129,7 +140,12 @@ fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: V
     let brightness: Arc<Mutex<f32>> = Arc::new(Mutex::new(1.0));
     let brightness_clone = brightness.clone();
     thread::spawn(move || {
-        mqtt::mqtt_setup(brightness_clone, status_clone, message_clone, new_message_clone);
+        mqtt::mqtt_setup(
+            brightness_clone,
+            status_clone,
+            message_clone,
+            new_message_clone,
+        );
     });
     let mut fps = fps_clock::FpsClock::new(frames_per_second);
     let mut prev_status: u32 = u32::MAX;
@@ -166,7 +182,7 @@ fn animation(strip: Arc<Mutex<Strip>>, frames_per_second: u32, mut animations: V
             has_changed = *changed_lock;
             *changed_lock = false;
         }
-        if has_changed{
+        if has_changed {
             let lock = message_mutex.lock().unwrap();
             animations[local_status as usize].on_message(lock.clone());
         }

@@ -1,14 +1,24 @@
 use futures::{executor::block_on, stream::StreamExt};
 use paho_mqtt as mqtt;
-use std::{process, time::Duration};
+use paho_mqtt::Message;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use paho_mqtt::Message;
+use std::{process, time::Duration};
 
-const TOPICS: &[&str] = &["/Lumibaer/status", "/Lumibaer/brightness", "/Lumibaer/parameter", "/Lumibaer/parameter/#"];
+const TOPICS: &[&str] = &[
+    "/Lumibaer/status",
+    "/Lumibaer/brightness",
+    "/Lumibaer/parameter",
+    "/Lumibaer/parameter/#",
+];
 const QOS: &[i32] = &[1, 1, 1, 1];
 
-pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, message: Arc<Mutex<Message>>, changed: Arc<Mutex<bool>>) {
+pub(crate) fn mqtt_setup(
+    brightness: Arc<Mutex<f32>>,
+    status: Arc<Mutex<u32>>,
+    message: Arc<Mutex<Message>>,
+    changed: Arc<Mutex<bool>>,
+) {
     let create_opts = mqtt::CreateOptionsBuilder::new()
         .server_uri(std::env::var("MQTT_BROKER_ADDRESS").unwrap())
         .mqtt_version(mqtt::MQTT_VERSION_5)
@@ -44,17 +54,17 @@ pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, m
 
         while let Some(msg_opt) = strm.next().await {
             if let Some(msg) = msg_opt {
-                if msg.topic() == TOPICS[0]{
+                if msg.topic() == TOPICS[0] {
                     if let Ok(x) = msg.payload_str().parse::<u32>() {
                         let mut lock = status.lock().unwrap();
                         *lock = x;
                     }
-                }else if msg.topic() == TOPICS[1]{
+                } else if msg.topic() == TOPICS[1] {
                     if let Ok(x) = msg.payload_str().parse::<f32>() {
                         let mut lock = brightness.lock().unwrap();
                         *lock = f32::min(f32::max(x as f32 / 100.0, 0.0), 1.0);
                     }
-                }else{
+                } else {
                     {
                         let mut lock = message.lock().unwrap();
                         *lock = msg.clone();
@@ -64,7 +74,6 @@ pub(crate) fn mqtt_setup(brightness: Arc<Mutex<f32>>, status: Arc<Mutex<u32>>, m
                         *lock = true;
                     }
                 }
-
             } else {
                 // A "None" means we were disconnected. Try to reconnect...
                 println!("Lost connection. Attempting reconnect.");

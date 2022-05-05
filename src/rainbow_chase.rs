@@ -1,6 +1,6 @@
-use std::sync::{Arc, Mutex};
-use crate::animation::{Animation, hsv_to_rgb};
+use crate::animation::{hsv_to_rgb, Animation};
 use crate::Strip;
+use std::sync::{Arc, Mutex};
 
 pub struct RainbowChase {
     initial_color_hue: u16,
@@ -10,7 +10,7 @@ pub struct RainbowChase {
     width: u32,
 }
 
-impl RainbowChase{
+impl RainbowChase {
     pub fn new(initial_color_hue: u16, step_size: u16, width: u32) -> RainbowChase {
         RainbowChase {
             initial_color_hue,
@@ -22,7 +22,7 @@ impl RainbowChase{
     }
 }
 
-impl Animation for RainbowChase{
+impl Animation for RainbowChase {
     fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         self.current_color_hue = (self.initial_color_hue + self.step_size) % 360;
         self.current_color_step = 0;

@@ -3,7 +3,7 @@
 use speedy2d::color::Color;
 
 #[derive(Clone)]
-pub struct Strip{
+pub struct Strip {
     pixels: Vec<Color>,
     width: usize,
     shut_down: bool,
@@ -27,9 +27,9 @@ impl Strip {
     }
 
     pub fn get_pixels(&self) -> Vec<Color> {
-        if self.shut_down{
+        if self.shut_down {
             vec![Color::BLACK; self.width]
-        }else {
+        } else {
             self.pixels.clone()
         }
     }
@@ -47,7 +47,7 @@ impl Strip {
     }
 
     pub fn set_pixel(&mut self, x: usize, color: Color) {
-        if x >= self.width{
+        if x >= self.width {
             return;
         }
         self.pixels[x] = color;
@@ -55,7 +55,7 @@ impl Strip {
 
     pub fn get_pixel(&self, x: usize) -> Color {
         if self.shut_down {
-            return Color::BLACK
+            return Color::BLACK;
         }
         if x >= self.width {
             return Color::WHITE;
