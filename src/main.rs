@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 mod animation;
 mod beat_detection_reciever;
 mod fireworks;
@@ -39,6 +42,15 @@ use crate::strip::Strip;
 
 use dotenv::dotenv;
 
+const FRAMES_PER_SECOND: u32 = 20;
+
+lazy_static! {
+    static ref PIXEL_NUMBER: u32 = std::env::var("PIXEL_NUMBER")
+        .expect("You need to define the amount of pixels of your LED strip.")
+        .parse::<u32>()
+        .expect("PIXEL_NUMBER should be an integer.");
+}
+
 fn main() {
     dotenv().ok();
 
@@ -48,21 +60,19 @@ fn main() {
 
     // global parameter
     let pixel_size = 30; // only important if use_window is true
-    let num_pixel = 77;
     let use_window = true;
-    let frames_per_second: u32 = 20;
     let start_status = 0;
     // edit the animations down below
 
     // initialize everything
-    let strip = Arc::new(Mutex::new(strip::Strip::new(num_pixel)));
+    let strip = Arc::new(Mutex::new(strip::Strip::new(*PIXEL_NUMBER as usize)));
     let strip_copy = strip.clone();
 
     // animation thread
     thread::spawn(move || {
         let animations: Vec<Box<dyn Animation>> = vec![
             Box::new(Off::new()),
-            Box::new(RainbowChase::new(0, 30, num_pixel as u32)),
+            Box::new(RainbowChase::new(0, 30, *PIXEL_NUMBER)),
             Box::new(RainbowFade::new(0, 3)),
             //Box::new(FullRainbow::new(6)),
             Box::new(Firework::new()),
@@ -70,12 +80,11 @@ fn main() {
             Box::new(BeatDetector::new()),
             //Box::new(AudioVisualizer::new()),
         ];
-        animation(strip_copy, frames_per_second, animations, start_status);
+        animation(strip_copy, FRAMES_PER_SECOND, animations, start_status);
     });
 
     // setup ctrlc handling
     let ctrl_strip_copy = strip.clone();
-    let fps_copy = frames_per_second;
     ctrlc::set_handler(move || {
         {
             let mut lock = ctrl_strip_copy.lock().unwrap();
@@ -83,7 +92,7 @@ fn main() {
         }
         println!("\nShutting down...");
         thread::sleep(std::time::Duration::from_millis(
-            (1500.0 / fps_copy as f32).ceil() as u64,
+            (1500.0 / FRAMES_PER_SECOND as f32).ceil() as u64,
         ));
         process::exit(0);
     })
@@ -93,14 +102,14 @@ fn main() {
         // display thread
         let window = speedy2d::Window::new_centered(
             "Strip",
-            Vector2::new(num_pixel as u32 * pixel_size as u32, pixel_size as u32),
+            Vector2::new(*PIXEL_NUMBER * pixel_size as u32, pixel_size as u32),
         )
         .unwrap();
         let stripwindowhandler = windowhandler::StripWindowHandler::new(strip, pixel_size);
         window.run_loop(stripwindowhandler);
     } else {
         // use neopixel
-        let mut fps = fps_clock::FpsClock::new(frames_per_second);
+        let mut fps = fps_clock::FpsClock::new(FRAMES_PER_SECOND);
         let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
         loop {
             let local_strip;
