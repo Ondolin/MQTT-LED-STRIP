@@ -28,11 +28,11 @@ jobs:
             apt-get install cmake openssl libssl-dev pkg-config curl -q -y
             curl https://sh.rustup.rs -sSf | sh -s -- -y
             source $HOME/.cargo/env
-            cargo build --release
 
           run: |
             source $HOME/.cargo/env
             cargo build --release
+            cp target/release/rust_lumibaer /artifacts
 
       - name: Get the output
         run: |
