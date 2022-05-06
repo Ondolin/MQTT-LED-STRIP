@@ -4,7 +4,7 @@ mod off;
 // mod full_rainbow;
 // mod rainbow_chase;
 mod rainbow_fade;
-// mod simple_color;
+mod simple_color;
 
 use crate::strip::Strip;
 use std::sync::{Arc, Mutex};
@@ -15,7 +15,7 @@ pub use off::Off;
 // pub use full_rainbow::FullRainbow;
 // pub use rainbow_chase::RainbowChase;
 pub use rainbow_fade::RainbowFade;
-// pub use simple_color::SimpleColor;
+pub use simple_color::SimpleColor;
 
 pub trait Animation {
     fn initialize(&mut self, _strip: Arc<Mutex<Strip>>) {}

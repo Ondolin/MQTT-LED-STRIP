@@ -13,6 +13,7 @@ extern crate angular_units as angle;
 extern crate fps_clock;
 
 use angle::Deg;
+use prisma::Rgb;
 
 use std::sync::{Arc, Mutex};
 use std::{process, thread};
@@ -36,7 +37,7 @@ use crate::animation::Off;
 // use crate::full_rainbow::FullRainbow;
 // use crate::rainbow_chase::RainbowChase;
 use crate::animation::RainbowFade;
-// use crate::simple_color::SimpleColor;
+use crate::animation::SimpleColor;
 //use crate::audio_visualizer::AudioVisualizer;
 
 use crate::strip::Strip;
@@ -74,7 +75,7 @@ fn main() {
             Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
             //Box::new(FullRainbow::new(6)),
             // Box::new(Firework::new()),
-            // Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
+            Box::new(SimpleColor::new(Rgb::new(255, 0, 0))),
             // Box::new(BeatDetector::new()),
             //Box::new(AudioVisualizer::new()),
         ];
