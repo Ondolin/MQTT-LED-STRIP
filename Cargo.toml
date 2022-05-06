@@ -20,7 +20,7 @@ prisma = "0.1.1"
 angular-units = "0.2.4"
 rand = "0.8.5"
 ctrlc = { version = "3.2.1", features = ["termination"] }
-portaudio = "0.7.0"
+# portaudio = "0.7.0"
 spectrum-analyzer = "1.2.3"
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
