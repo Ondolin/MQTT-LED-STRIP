@@ -1,0 +1,40 @@
+name: ARMV7 Build
+
+on: [push, pull_request]
+
+jobs:
+  armv7_job:
+    # The host should always be Linux
+    runs-on: ubuntu-18.04
+    name: Build on ubuntu-18.04 armv7
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: uraimo/run-on-arch-action@v2
+        name: Run commands
+        id: runcmd
+        with:
+          arch: armv7
+          distro: ubuntu18.04
+
+          # Not required, but speeds up builds by storing container images in
+          # a GitHub package registry.
+          # githubToken: ${{ github.token }}
+
+          install: |
+            apt-get update -q -y
+            apt-get install cmake openssl libssl-dev -q -y
+            curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+          run: |
+            cargo build --release
+
+      - name: Get the output
+        run: |
+          ls -la
+          pwd
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: armv7_build
+          path: ./target/release/rust_lumibaer
+      
