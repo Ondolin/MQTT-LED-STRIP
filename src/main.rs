@@ -33,7 +33,7 @@ use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
 use crate::animation::Animation;
 use crate::animation::Off;
 // use crate::beat_detection_reciever::BeatDetector;
-// use crate::fireworks::Firework;
+use crate::animation::Firework;
 use crate::animation::FullRainbow;
 use crate::animation::RainbowChase;
 use crate::animation::RainbowFade;
@@ -74,7 +74,7 @@ fn main() {
             Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
             Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
             Box::new(FullRainbow::new(6)),
-            // Box::new(Firework::new()),
+            Box::new(Firework::new()),
             Box::new(SimpleColor::new(Rgb::new(255, 0, 0))),
             // Box::new(BeatDetector::new()),
             //Box::new(AudioVisualizer::new()),

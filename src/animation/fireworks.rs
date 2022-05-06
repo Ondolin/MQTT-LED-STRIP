@@ -1,8 +1,8 @@
 use crate::animation::Animation;
 use crate::Strip;
+use prisma::Rgb;
 use rand::rngs::ThreadRng;
 use rand::Rng;
-use speedy2d::color::Color;
 use std::sync::{Arc, Mutex};
 
 pub struct Firework {
@@ -31,12 +31,11 @@ impl Firework {
 }
 
 impl Animation for Firework {
-    #[allow(unused_variables)]
-    fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
+    fn initialize(&mut self, _strip: Arc<Mutex<Strip>>) {
         self.loc_initialize();
     }
 
-    fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
+    fn update(&mut self, strip: Arc<Mutex<Strip>>) {
         self.cycle += 1;
         if self.cycle < 3 {
             return;
@@ -50,18 +49,11 @@ impl Animation for Firework {
         if self.rocket.exploded {
             for spark in self.rocket.sparks.iter() {
                 if spark.time_to_live > 0 {
-                    strip_lock.set_pixel(
-                        spark.position as usize,
-                        Color::from_rgb(
-                            spark.color.r() * brightness,
-                            spark.color.g() * brightness,
-                            spark.color.b() * brightness,
-                        ),
-                    );
+                    strip_lock.set_pixel(spark.position as usize, spark.color);
                 }
             }
         } else {
-            strip_lock.set_pixel(self.rocket.position as usize, Color::WHITE);
+            strip_lock.set_pixel(self.rocket.position as usize, Rgb::new(255, 255, 255));
         }
     }
 }
@@ -97,7 +89,11 @@ impl FireworkRocket {
         } else {
             self.position += self.speed;
             self.time_to_explode -= 1;
-            let color_selection: Vec<Color> = vec![Color::RED, Color::BLUE, Color::MAGENTA];
+            let color_selection: Vec<Rgb<u8>> = vec![
+                Rgb::new(255, 0, 0),
+                Rgb::new(0, 0, 255),
+                Rgb::new(255, 0, 255),
+            ];
             let time_range = (5, 15);
             let speed_range = (-6, 2);
             let num_sparks = 15;
@@ -121,7 +117,7 @@ impl FireworkRocket {
 
 struct FireworkSpark {
     position: u32,
-    color: Color,
+    color: Rgb<u8>,
     speed: i32,
     time_to_live: u32,
 }
@@ -129,7 +125,7 @@ struct FireworkSpark {
 impl FireworkSpark {
     fn new(
         position: u32,
-        color_selection: Vec<Color>,
+        color_selection: Vec<Rgb<u8>>,
         time_range: (u32, u32),
         speed_range: (i32, i32),
         rng: &mut ThreadRng,
@@ -147,7 +143,7 @@ impl FireworkSpark {
 
     fn update(&mut self) -> bool {
         if self.time_to_live == 0 {
-            self.color = Color::BLACK;
+            self.color = Rgb::new(0, 0, 0);
             return true;
         } else {
             self.time_to_live -= 1;
