@@ -20,12 +20,10 @@ jobs:
           # a GitHub package registry.
           # githubToken: ${{ github.token }}
 
-          install: |
+          run: |
             apt-get update -q -y
             apt-get install cmake openssl libssl-dev -q -y
             curl https://sh.rustup.rs -sSf | sh -s -- -y
-
-          run: |
             cargo build --release
 
       - name: Get the output
@@ -33,8 +31,7 @@ jobs:
           ls -la
           pwd
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: armv7_build
-          path: ./target/release/rust_lumibaer
-      
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: armv7_build
+      #path: ./target/release/rust_lumibaer
