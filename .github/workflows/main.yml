@@ -9,6 +9,17 @@ jobs:
     name: Build on ubuntu-18.04 armv7
     steps:
       - uses: actions/checkout@v2.1.0
+      
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          # target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
       - uses: uraimo/run-on-arch-action@v2
         name: Run commands
         id: runcmd
@@ -18,6 +29,7 @@ jobs:
           
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
+            --volume "~/.cargo:~/.cargo"
 
           # Not required, but speeds up builds by storing container images in
           # a GitHub package registry.
@@ -33,13 +45,14 @@ jobs:
             source $HOME/.cargo/env
             cargo build --release
             cp target/release/rust_lumibaer /artifacts
+            pwd
 
       - name: Get the output
         run: |
           ls -la
           pwd
 
-      #- uses: actions/upload-artifact@v3
-      #  with:
-      #    name: armv7_build
-      #path: ./target/release/rust_lumibaer
+      - uses: actions/upload-artifact@v3
+        with:
+          name: armv7_build
+          path: artifacts/rust_lumibaer
