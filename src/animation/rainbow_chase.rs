@@ -1,5 +1,5 @@
 use angular_units::Deg;
-use prisma::{Hsv, Rgb, FromColor};
+use prisma::{FromColor, Hsv, Rgb};
 
 use crate::animation::Animation;
 use crate::Strip;

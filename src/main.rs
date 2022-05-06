@@ -34,7 +34,7 @@ use crate::animation::Animation;
 use crate::animation::Off;
 // use crate::beat_detection_reciever::BeatDetector;
 // use crate::fireworks::Firework;
-// use crate::full_rainbow::FullRainbow;
+use crate::animation::FullRainbow;
 use crate::animation::RainbowChase;
 use crate::animation::RainbowFade;
 use crate::animation::SimpleColor;
@@ -73,7 +73,7 @@ fn main() {
             Box::new(Off::new()),
             Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
             Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
-            //Box::new(FullRainbow::new(6)),
+            Box::new(FullRainbow::new(6)),
             // Box::new(Firework::new()),
             Box::new(SimpleColor::new(Rgb::new(255, 0, 0))),
             // Box::new(BeatDetector::new()),
