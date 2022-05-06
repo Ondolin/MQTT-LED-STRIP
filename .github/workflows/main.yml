@@ -22,7 +22,7 @@ jobs:
 
           run: |
             apt-get update -q -y
-            apt-get install cmake openssl libssl-dev -q -y
+            apt-get install cmake openssl libssl-dev curl -q -y
             curl https://sh.rustup.rs -sSf | sh -s -- -y
             cargo build --release
 
