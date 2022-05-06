@@ -35,7 +35,7 @@ use crate::animation::Off;
 // use crate::beat_detection_reciever::BeatDetector;
 // use crate::fireworks::Firework;
 // use crate::full_rainbow::FullRainbow;
-// use crate::rainbow_chase::RainbowChase;
+use crate::animation::RainbowChase;
 use crate::animation::RainbowFade;
 use crate::animation::SimpleColor;
 //use crate::audio_visualizer::AudioVisualizer;
@@ -70,8 +70,8 @@ fn main() {
     // animation thread
     thread::spawn(move || {
         let animations: Vec<Box<dyn Animation>> = vec![
-            Box::new(Off::new()),
-            // Box::new(RainbowChase::new(0, 30, *PIXEL_NUMBER)),
+            // Box::new(Off::new()),
+            Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
             Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
             //Box::new(FullRainbow::new(6)),
             // Box::new(Firework::new()),
