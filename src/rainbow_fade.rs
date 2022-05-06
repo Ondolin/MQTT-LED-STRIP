@@ -1,35 +1,37 @@
-use crate::animation::{hsv_to_rgb, Animation};
+use prisma::{FromColor, Hsv, Rgb};
+
+use crate::animation::Animation;
 use crate::Strip;
 use std::sync::{Arc, Mutex};
 
+use angle::Deg;
+
 pub struct RainbowFade {
-    current_color_hue: u16,
-    initial_color_hue: u16,
-    step_size: u16,
+    current_color: Hsv<f32, Deg<f32>>,
+    initial_color: Hsv<f32, Deg<f32>>,
+    step_size: Deg<f32>,
 }
 
 impl RainbowFade {
-    pub fn new(initial_color_hue: u16, step_size: u16) -> RainbowFade {
+    pub fn new(initial_color_hue: Deg<f32>, step_size: Deg<f32>) -> RainbowFade {
         RainbowFade {
-            current_color_hue: 0,
-            initial_color_hue,
+            current_color: Hsv::new(initial_color_hue, 1.0, 1.0),
+            initial_color: Hsv::new(initial_color_hue, 1.0, 1.0),
             step_size,
         }
     }
 }
 
 impl Animation for RainbowFade {
-    #[allow(unused_variables)]
-    fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
-        self.current_color_hue = self.initial_color_hue;
+    fn initialize(&mut self, _strip: Arc<Mutex<Strip>>, _brightness: f32) {
+        self.current_color = self.initial_color;
     }
 
     fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
-        self.current_color_hue += self.step_size;
-        self.current_color_hue %= 360;
-        strip
-            .lock()
-            .unwrap()
-            .set_all(hsv_to_rgb(self.current_color_hue as u32, 1.0, brightness));
+        *self.current_color.hue_mut() += self.step_size;
+
+        let rgb: Rgb<u8> = Rgb::from_color(&self.current_color).color_cast();
+
+        strip.lock().unwrap().set_all(rgb)
     }
 }

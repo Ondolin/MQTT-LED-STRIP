@@ -29,7 +29,11 @@ impl WindowHandler for StripWindowHandler {
                     self.pixel_size as f32,
                 );
                 let rect = Rectangle::new(top, bottom);
-                graphics.draw_rectangle(rect, loc_strip.get_pixel(i));
+
+                let rgb = loc_strip.get_pixel(i);
+                let speedy_rgb = Color::from_int_rgb(rgb.red(), rgb.green(), rgb.blue());
+
+                graphics.draw_rectangle(rect, speedy_rgb);
             }
         }
         helper.request_redraw()

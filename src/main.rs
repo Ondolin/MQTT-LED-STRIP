@@ -2,41 +2,49 @@
 extern crate lazy_static;
 
 mod animation;
-mod beat_detection_reciever;
-mod fireworks;
-mod full_rainbow;
+// mod beat_detection_reciever;
+// mod fireworks;
+// mod full_rainbow;
 mod mqtt;
-mod rainbow_chase;
+// mod rainbow_chase;
 mod rainbow_fade;
-mod simple_color;
+// mod simple_color;
 mod strip;
+
+#[cfg(feature = "simulate")]
 mod windowhandler;
 //mod audio_visualizer;
 
 extern crate angular_units as angle;
 extern crate fps_clock;
 
+use angle::Deg;
+
 use std::sync::{Arc, Mutex};
 use std::{process, thread};
 
 use paho_mqtt::Message;
-use speedy2d::color::Color;
+
+#[cfg(feature = "simulate")]
 use speedy2d::dimen::Vector2;
 
 use ctrlc;
 
+#[cfg(not(feature = "simulate"))]
 use ws2818_rgb_led_spi_driver::adapter_gen::WS28xxAdapter;
+#[cfg(not(feature = "simulate"))]
 use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
+#[cfg(not(feature = "simulate"))]
 use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
 use crate::animation::Animation;
 use crate::animation::Off;
-use crate::beat_detection_reciever::BeatDetector;
-use crate::fireworks::Firework;
-use crate::full_rainbow::FullRainbow;
-use crate::rainbow_chase::RainbowChase;
+// use crate::beat_detection_reciever::BeatDetector;
+// use crate::fireworks::Firework;
+// use crate::full_rainbow::FullRainbow;
+// use crate::rainbow_chase::RainbowChase;
 use crate::rainbow_fade::RainbowFade;
-use crate::simple_color::SimpleColor;
+// use crate::simple_color::SimpleColor;
 use crate::strip::Strip;
 //use crate::audio_visualizer::AudioVisualizer;
 
@@ -51,18 +59,15 @@ lazy_static! {
         .expect("PIXEL_NUMBER should be an integer.");
 }
 
+#[cfg(feature = "simulate")]
+const PIXEL_SIZE: u32 = 30; // only important if use_window is true
+
 fn main() {
     dotenv().ok();
 
     std::env::var("MQTT_BROKER_ADDRESS").expect("You need to specify an MQTT_BROKER_ADRESS!");
     std::env::var("MQTT_USERNAME").expect("You need to specify an MQTT_USERNAME!");
     std::env::var("MQTT_CLIENT_PASSWORD").expect("You need to specify an MQTT_CLIENT_PASSWORD!");
-
-    // global parameter
-    let pixel_size = 30; // only important if use_window is true
-    let use_window = true;
-    let start_status = 0;
-    // edit the animations down below
 
     // initialize everything
     let strip = Arc::new(Mutex::new(strip::Strip::new(*PIXEL_NUMBER as usize)));
@@ -72,15 +77,15 @@ fn main() {
     thread::spawn(move || {
         let animations: Vec<Box<dyn Animation>> = vec![
             Box::new(Off::new()),
-            Box::new(RainbowChase::new(0, 30, *PIXEL_NUMBER)),
-            Box::new(RainbowFade::new(0, 3)),
+            // Box::new(RainbowChase::new(0, 30, *PIXEL_NUMBER)),
+            Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
             //Box::new(FullRainbow::new(6)),
-            Box::new(Firework::new()),
-            Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
-            Box::new(BeatDetector::new()),
+            // Box::new(Firework::new()),
+            // Box::new(SimpleColor::new(Color::from_rgb(1.0, 0.0, 0.0))),
+            // Box::new(BeatDetector::new()),
             //Box::new(AudioVisualizer::new()),
         ];
-        animation(strip_copy, FRAMES_PER_SECOND, animations, start_status);
+        animation(strip_copy, FRAMES_PER_SECOND, animations, 0);
     });
 
     // setup ctrlc handling
@@ -98,16 +103,20 @@ fn main() {
     })
     .expect("Error setting Ctrl-C handler");
 
-    if use_window {
+    #[cfg(feature = "simulate")]
+    {
         // display thread
         let window = speedy2d::Window::new_centered(
             "Strip",
-            Vector2::new(*PIXEL_NUMBER * pixel_size as u32, pixel_size as u32),
+            Vector2::new(*PIXEL_NUMBER * PIXEL_SIZE as u32, PIXEL_SIZE as u32),
         )
         .unwrap();
-        let stripwindowhandler = windowhandler::StripWindowHandler::new(strip, pixel_size);
+        let stripwindowhandler = windowhandler::StripWindowHandler::new(strip, PIXEL_SIZE);
         window.run_loop(stripwindowhandler);
-    } else {
+    }
+
+    #[cfg(not(feature = "simulate"))]
+    {
         // use neopixel
         let mut fps = fps_clock::FpsClock::new(FRAMES_PER_SECOND);
         let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
@@ -119,11 +128,7 @@ fn main() {
             }
             let mut spi_encoded_rgb_bits = vec![];
             for pixel in local_strip.get_pixels().iter() {
-                let rgb = encode_rgb(
-                    (pixel.r() * 255.0).floor() as u8,
-                    (pixel.g() * 255.0).floor() as u8,
-                    (pixel.b() * 255.0).floor() as u8,
-                );
+                let rgb = encode_rgb(pixel.red(), pixel.green(), pixel.blue());
                 spi_encoded_rgb_bits.extend_from_slice(&rgb);
             }
             adapter.write_encoded_rgb(&spi_encoded_rgb_bits).unwrap();

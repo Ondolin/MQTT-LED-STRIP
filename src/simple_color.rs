@@ -1,15 +1,15 @@
 use crate::animation::Animation;
 use crate::Strip;
 use paho_mqtt::Message;
-use speedy2d::color::Color;
+use prisma::Rgb;
 use std::sync::{Arc, Mutex};
 
 pub(crate) struct SimpleColor {
-    color: Color,
+    color: Rgb<u8>,
 }
 
 impl SimpleColor {
-    pub fn new(color: Color) -> SimpleColor {
+    pub fn new(color: Rgb<u8>) -> SimpleColor {
         SimpleColor { color }
     }
 }
@@ -17,10 +17,10 @@ impl SimpleColor {
 impl Animation for SimpleColor {
     fn initialize(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
         let mut lock = strip.lock().unwrap();
-        lock.set_all(Color::from_rgb(
-            self.color.r() * brightness,
-            self.color.g() * brightness,
-            self.color.b() * brightness,
+        lock.set_all(Rgb::new(
+            self.color.red() * brightness,
+            self.color.green() * brightness,
+            self.color.blue() * brightness,
         ));
     }
 
