@@ -4,7 +4,7 @@ use paho_mqtt::Message;
 use prisma::Rgb;
 use std::sync::{Arc, Mutex};
 
-pub(crate) struct SimpleColor {
+pub struct SimpleColor {
     color: Rgb<u8>,
 }
 

@@ -1,13 +1,7 @@
+use crate::Animation;
 use crate::Strip;
 use paho_mqtt as mqtt;
 use std::sync::{Arc, Mutex};
-
-pub trait Animation {
-    fn initialize(&mut self, _strip: Arc<Mutex<Strip>>) {}
-    fn update(&mut self, _strip: Arc<Mutex<Strip>>) {}
-    fn on_message(&mut self, _message: mqtt::Message) {}
-    fn terminate(&mut self) {}
-}
 
 pub struct Off {}
 

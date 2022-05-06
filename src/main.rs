@@ -2,13 +2,7 @@
 extern crate lazy_static;
 
 mod animation;
-// mod beat_detection_reciever;
-// mod fireworks;
-// mod full_rainbow;
 mod mqtt;
-// mod rainbow_chase;
-mod rainbow_fade;
-// mod simple_color;
 mod strip;
 
 #[cfg(feature = "simulate")]
@@ -34,8 +28,6 @@ use ctrlc;
 use ws2818_rgb_led_spi_driver::adapter_gen::WS28xxAdapter;
 #[cfg(not(feature = "simulate"))]
 use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
-#[cfg(not(feature = "simulate"))]
-use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
 use crate::animation::Animation;
 use crate::animation::Off;
@@ -43,10 +35,11 @@ use crate::animation::Off;
 // use crate::fireworks::Firework;
 // use crate::full_rainbow::FullRainbow;
 // use crate::rainbow_chase::RainbowChase;
-use crate::rainbow_fade::RainbowFade;
+use crate::animation::RainbowFade;
 // use crate::simple_color::SimpleColor;
-use crate::strip::Strip;
 //use crate::audio_visualizer::AudioVisualizer;
+
+use crate::strip::Strip;
 
 use dotenv::dotenv;
 
@@ -70,7 +63,7 @@ fn main() {
     std::env::var("MQTT_CLIENT_PASSWORD").expect("You need to specify an MQTT_CLIENT_PASSWORD!");
 
     // initialize everything
-    let strip = Arc::new(Mutex::new(strip::Strip::new(*PIXEL_NUMBER as usize)));
+    let strip = Arc::new(Mutex::new(Strip::new(*PIXEL_NUMBER as usize)));
     let strip_copy = strip.clone();
 
     // animation thread
@@ -85,7 +78,7 @@ fn main() {
             // Box::new(BeatDetector::new()),
             //Box::new(AudioVisualizer::new()),
         ];
-        animation(strip_copy, FRAMES_PER_SECOND, animations);
+        start_strip(strip_copy, FRAMES_PER_SECOND, animations);
     });
 
     // setup ctrlc handling
@@ -133,7 +126,7 @@ fn main() {
     }
 }
 
-fn animation(
+fn start_strip(
     strip: Arc<Mutex<Strip>>,
     frames_per_second: u32,
     mut animations: Vec<Box<dyn Animation>>,
