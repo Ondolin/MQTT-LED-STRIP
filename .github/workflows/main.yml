@@ -18,7 +18,7 @@ jobs:
           
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
-            --volume "~/.cargo:/root/.cargo"
+          #--volume "~/.cargo:/root/.cargo"
 
           # Not required, but speeds up builds by storing container images in
           # a GitHub package registry.
