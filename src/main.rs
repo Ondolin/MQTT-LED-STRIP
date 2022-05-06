@@ -70,7 +70,7 @@ fn main() {
     // animation thread
     thread::spawn(move || {
         let animations: Vec<Box<dyn Animation>> = vec![
-            // Box::new(Off::new()),
+            Box::new(Off::new()),
             Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
             Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
             //Box::new(FullRainbow::new(6)),

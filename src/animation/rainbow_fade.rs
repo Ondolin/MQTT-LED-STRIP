@@ -29,6 +29,7 @@ impl Animation for RainbowFade {
 
     fn update(&mut self, strip: Arc<Mutex<Strip>>) {
         *self.current_color.hue_mut() += self.step_size;
+        *self.current_color.hue_mut() %= Deg(360.0);
 
         let rgb: Rgb<u8> = Rgb::from_color(&self.current_color).color_cast();
 
