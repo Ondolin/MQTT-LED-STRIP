@@ -15,15 +15,22 @@ jobs:
         with:
           arch: armv7
           distro: ubuntu18.04
+          
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
 
           # Not required, but speeds up builds by storing container images in
           # a GitHub package registry.
-          # githubToken: ${{ github.token }}
-
-          run: |
+          githubToken: ${{ github.token }}
+          
+          install: |
             apt-get update -q -y
             apt-get install cmake openssl libssl-dev curl -q -y
             curl https://sh.rustup.rs -sSf | sh -s -- -y
+            source $HOME/.cargo/env
+            cargo build --release
+
+          run: |
             source $HOME/.cargo/env
             cargo build --release
 
