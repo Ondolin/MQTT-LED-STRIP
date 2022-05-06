@@ -33,6 +33,10 @@ impl Strip {
         }
     }
 
+    pub fn set_brightness(&mut self, brightness: f32) {
+        self.brightness = brightness;
+    }
+
     pub fn get_pixel_length(&self) -> usize {
         self.pixels.len()
     }
@@ -47,6 +51,30 @@ impl Strip {
         } else {
             self.pixels.clone()
         }
+    }
+
+    #[cfg(not(feature = "simulate"))]
+    pub fn get_led_stip_pixels(&self) -> Vec<u8> {
+        use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
+        let mut pixels = Vec::new();
+
+        for pixel in &self.pixels {
+            let pixel_with_brightness = get_pixel_brightness(pixel.clone(), self.brightness);
+
+            let encoded_rgb = if self.shut_down {
+                encode_rgb(0, 0, 0)
+            } else {
+                encode_rgb(
+                    pixel_with_brightness.red(),
+                    pixel_with_brightness.green(),
+                    pixel_with_brightness.blue(),
+                )
+            };
+
+            pixels.extend_from_slice(&encoded_rgb);
+        }
+
+        pixels
     }
 
     pub fn get_width(&self) -> usize {

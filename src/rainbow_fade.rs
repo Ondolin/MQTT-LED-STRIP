@@ -23,11 +23,11 @@ impl RainbowFade {
 }
 
 impl Animation for RainbowFade {
-    fn initialize(&mut self, _strip: Arc<Mutex<Strip>>, _brightness: f32) {
+    fn initialize(&mut self, _strip: Arc<Mutex<Strip>>) {
         self.current_color = self.initial_color;
     }
 
-    fn update(&mut self, strip: Arc<Mutex<Strip>>, brightness: f32) {
+    fn update(&mut self, strip: Arc<Mutex<Strip>>) {
         *self.current_color.hue_mut() += self.step_size;
 
         let rgb: Rgb<u8> = Rgb::from_color(&self.current_color).color_cast();
