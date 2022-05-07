@@ -2,6 +2,12 @@ name: ARMV7 Build
 
 on: [push, pull_request]
 
+#~/.cargo/env
+          #~/.cargo/bin/
+          #~/.cargo/registry/index/
+          #~/.cargo/registry/cache/
+          #~/.cargo/git/db/
+
 jobs:
   armv7_job:
     # The host should always be Linux
@@ -11,11 +17,6 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/env
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
             ~/target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           
@@ -38,7 +39,6 @@ jobs:
           
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
-            --volume "${HOME}/.cargo:/root/.cargo"
             --volume "${HOME}/target:/home/runner/work/MQTT-LED-STRIP/MQTT-LED-STRIP/target"
             
           
