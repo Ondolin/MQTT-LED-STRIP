@@ -48,6 +48,7 @@ jobs:
             source $HOME/.cargo/env
 
           run: |
+            ls $HOME $HOME/.cargo
             source $HOME/.cargo/env
             cargo build --release
             cp target/release/rust_lumibaer /artifacts
