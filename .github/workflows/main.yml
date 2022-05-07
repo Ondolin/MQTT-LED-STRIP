@@ -55,11 +55,6 @@ jobs:
             cp target/release/rust_lumibaer /artifacts
             pwd
 
-      - name: Get the output
-        run: |
-          ls -la
-          pwd
-
       - uses: actions/upload-artifact@v3
         with:
           name: armv7_build
