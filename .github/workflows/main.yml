@@ -8,7 +8,18 @@ jobs:
     runs-on: ubuntu-18.04
     name: Build on ubuntu-18.04 armv7
     steps:
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ~/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          
       - uses: actions/checkout@v2.1.0
+      
       - uses: uraimo/run-on-arch-action@v2
         name: Run commands
         id: runcmd
@@ -16,13 +27,19 @@ jobs:
           arch: armv7
           distro: ubuntu18.04
           
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
-          #--volume "~/.cargo:/root/.cargo"
-
           # Not required, but speeds up builds by storing container images in
           # a GitHub package registry.
           githubToken: ${{ github.token }}
+          
+          setup: |
+            mkdir -p ~/.cargo
+            mkdir -p ~/target
+          
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
+            --volume "${HOME}/.cargo:/root/.cargo"
+            --volume "${HOME}/target:/home/runner/work/MQTT-LED-STRIP/MQTT-LED-STRIP/target"
+            
           
           install: |
             apt-get update -q -y
