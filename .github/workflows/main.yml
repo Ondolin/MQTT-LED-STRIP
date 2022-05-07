@@ -39,6 +39,7 @@ jobs:
           
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
+            --volume "${HOME}/.cargo/:/root/.cargo"
             --volume "${HOME}/target:/home/runner/work/MQTT-LED-STRIP/MQTT-LED-STRIP/target"
             
           
