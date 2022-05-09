@@ -39,7 +39,6 @@ jobs:
           
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
-            --volume "${HOME}/.cargo/:/root/.cargo"
             --volume "${HOME}/target:/home/runner/work/MQTT-LED-STRIP/MQTT-LED-STRIP/target"
             
           
@@ -50,7 +49,6 @@ jobs:
             source $HOME/.cargo/env
 
           run: |
-            ls $HOME $HOME/.cargo $HOME/.cargo/env $HOME/.cargo/bin
             source $HOME/.cargo/env
             $HOME/.cargo/bin/cargo build --release
             cp target/release/rust_lumibaer /artifacts
