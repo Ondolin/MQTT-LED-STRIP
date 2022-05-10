@@ -98,11 +98,7 @@ pub(crate) fn mqtt_setup(
                             }
                             "chase" => {
                                 use crate::animation::RainbowChase;
-                                set_animation(Box::new(RainbowChase::new(
-                                    Deg(0.0),
-                                    30,
-                                    *PIXEL_NUMBER,
-                                )));
+                                set_animation(Box::new(RainbowChase::new(Deg(0.0), 30)));
                             }
                             _ => {}
                         };
