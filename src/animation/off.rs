@@ -1,6 +1,5 @@
 use crate::Animation;
 use crate::Strip;
-use paho_mqtt as mqtt;
 use std::sync::{Arc, Mutex};
 
 pub struct Off {}
