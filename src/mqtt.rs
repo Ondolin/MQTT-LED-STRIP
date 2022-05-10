@@ -1,17 +1,21 @@
 use futures::{executor::block_on, stream::StreamExt};
 use paho_mqtt as mqtt;
 use paho_mqtt::Message;
+use prisma::Rgb;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::{process, time::Duration};
 
+use crate::{set_animation, NEW_ANIMATION};
+
 const TOPICS: &[&str] = &[
-    "/Lumibaer/status",
-    "/Lumibaer/brightness",
-    "/Lumibaer/parameter",
-    "/Lumibaer/parameter/#",
+    "/LED-STRIP/status",
+    "/LED-STRIP/brightness",
+    "/LED-STRIP/animation/#",
+    "/LED-STRIP/parameter",
+    "/LED-STRIP/parameter/#",
 ];
-const QOS: &[i32] = &[1, 1, 1, 1];
+const QOS: &[i32] = &[1, 1, 1, 1, 1];
 
 pub(crate) fn mqtt_setup(
     brightness: Arc<Mutex<f32>>,
@@ -64,6 +68,20 @@ pub(crate) fn mqtt_setup(
                         let mut lock = brightness.lock().unwrap();
                         *lock = f32::min(f32::max(x as f32 / 100.0, 0.0), 1.0);
                     }
+                } else if msg.topic().starts_with(&TOPICS[2][..TOPICS[2].len() - 1]) {
+                    let animation_name = msg.topic().split("/").last();
+
+                    if let Some(animation_name) = animation_name {
+                        match animation_name.to_lowercase().as_str() {
+                            "color" => {
+                                use crate::animation::SimpleColor;
+                                if let Ok(color) = color_from_str(&msg.payload_str()) {
+                                    set_animation(Box::new(SimpleColor::new(color)))
+                                }
+                            }
+                            _ => {}
+                        };
+                    }
                 } else {
                     {
                         let mut lock = message.lock().unwrap();
@@ -75,16 +93,41 @@ pub(crate) fn mqtt_setup(
                     }
                 }
             } else {
-                // A "None" means we were disconnected. Try to reconnect...
                 println!("Lost connection. Attempting reconnect.");
                 while let Err(err) = mqtt_client.reconnect().await {
                     println!("Error reconnecting: {:?}", err);
                     thread::sleep(Duration::from_millis(1000));
                 }
+                println!("Reconnected.");
             }
         }
         Ok::<(), mqtt::Error>(())
     }) {
         eprintln!("{}", err);
     }
+}
+
+fn color_from_str(string: &str) -> Result<Rgb<u8>, ()> {
+    let split = string.replace(" ", "").replace("(", "").replace(")", "");
+    let mut split = split.split(",");
+
+    let r = split.next();
+    let g = split.next();
+    let b = split.next();
+
+    if r.is_some() && g.is_some() && b.is_some() {
+        let r = r.unwrap().parse::<u8>();
+        let g = g.unwrap().parse::<u8>();
+        let b = b.unwrap().parse::<u8>();
+
+        if r.is_ok() && g.is_ok() && b.is_ok() {
+            return Ok(Rgb::new(r.unwrap(), g.unwrap(), b.unwrap()));
+        }
+
+        println!("Could not parse u8 values for colors.")
+    }
+
+    println!("Could not parse 3 color values.");
+
+    Err(())
 }

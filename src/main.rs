@@ -12,9 +12,6 @@ mod windowhandler;
 extern crate angular_units as angle;
 extern crate fps_clock;
 
-use angle::Deg;
-use prisma::Rgb;
-
 use std::sync::{Arc, Mutex};
 use std::{process, thread};
 
@@ -32,13 +29,6 @@ use ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter;
 
 use crate::animation::Animation;
 use crate::animation::Off;
-// use crate::beat_detection_reciever::BeatDetector;
-use crate::animation::Firework;
-use crate::animation::FullRainbow;
-use crate::animation::RainbowChase;
-use crate::animation::RainbowFade;
-use crate::animation::SimpleColor;
-//use crate::audio_visualizer::AudioVisualizer;
 
 use crate::strip::Strip;
 
@@ -51,6 +41,14 @@ lazy_static! {
         .expect("You need to define the amount of pixels of your LED strip.")
         .parse::<u32>()
         .expect("PIXEL_NUMBER should be an integer.");
+    static ref CURRENT_ANIMATION: Mutex<Box<dyn Animation + Send>> =
+        Mutex::new(Box::new(Off::new()));
+    static ref NEW_ANIMATION: Mutex<Option<Box<dyn Animation + Send>>> = Mutex::new(None);
+}
+
+pub fn set_animation(animation: Box<dyn Animation + Send>) {
+    let mut lock = NEW_ANIMATION.lock().unwrap();
+    *lock = Some(animation);
 }
 
 #[cfg(feature = "simulate")]
@@ -69,17 +67,17 @@ fn main() {
 
     // animation thread
     thread::spawn(move || {
-        let animations: Vec<Box<dyn Animation>> = vec![
-            Box::new(Off::new()),
-            Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
-            Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
-            Box::new(FullRainbow::new(6)),
-            Box::new(Firework::new()),
-            Box::new(SimpleColor::new(Rgb::new(255, 0, 0))),
-            // Box::new(BeatDetector::new()),
-            //Box::new(AudioVisualizer::new()),
-        ];
-        start_strip(strip_copy, FRAMES_PER_SECOND, animations);
+        //let animations: Vec<Box<dyn Animation>> = vec![
+        //    Box::new(Off::new()),
+        //    Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
+        //    Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
+        //    Box::new(FullRainbow::new(6)),
+        //    Box::new(Firework::new()),
+        //    Box::new(SimpleColor::new(Rgb::new(255, 0, 0))),
+        //    // Box::new(BeatDetector::new()),
+        //    //Box::new(AudioVisualizer::new()),
+        //];
+        start_strip(strip_copy, FRAMES_PER_SECOND);
     });
 
     // setup ctrlc handling
@@ -127,11 +125,7 @@ fn main() {
     }
 }
 
-fn start_strip(
-    strip: Arc<Mutex<Strip>>,
-    frames_per_second: u32,
-    mut animations: Vec<Box<dyn Animation>>,
-) {
+fn start_strip(strip: Arc<Mutex<Strip>>, frames_per_second: u32) {
     let message_mutex: Arc<Mutex<Message>> = Arc::new(Mutex::new(Message::default()));
     let message_clone = message_mutex.clone();
 
@@ -156,7 +150,6 @@ fn start_strip(
     });
 
     let mut fps = fps_clock::FpsClock::new(frames_per_second);
-    let mut prev_status: u32 = u32::MAX;
 
     let brightness_clone = brightness.clone();
     loop {
@@ -169,41 +162,28 @@ fn start_strip(
             strip.set_brightness(brightness.clone());
         }
 
-        let local_status;
-        {
-            let animation_index = animation_index.lock().unwrap();
-            local_status = animation_index.clone();
-        }
+        let animation_changed = { NEW_ANIMATION.lock().unwrap().is_some() };
 
-        // The animation number exeeds the amount of animations
-        if local_status >= animations.len() as u32 {
-            prev_status = u32::MAX;
+        // change the animation
+        if animation_changed {
             {
-                let mut strip_lock = strip.lock().unwrap();
-                strip_lock.reset();
+                let mut animation = CURRENT_ANIMATION.lock().unwrap();
+                animation.terminate();
             }
-            continue;
-        }
 
-        // The anuimation has changed. Terminate old one -> Start new one
-        if local_status != prev_status {
-            if prev_status != u32::MAX {
-                animations[prev_status as usize].terminate();
-            }
-            prev_status = local_status;
-            animations[local_status as usize].initialize(strip.clone());
-        }
+            // set the NEW_ANIMATION variable to None
+            let mut update_animation: Option<Box<dyn Animation + Send>> = None;
+            std::mem::swap(&mut update_animation, &mut *NEW_ANIMATION.lock().unwrap());
 
-        let has_changed;
-        {
-            let mut changed_lock = message_has_changed.lock().unwrap();
-            has_changed = *changed_lock;
-            *changed_lock = false;
+            // update the CURRENT_ANIMATION variable
+            let mut old_animation = update_animation.unwrap();
+
+            old_animation.initialize(strip.clone());
+
+            std::mem::swap(&mut old_animation, &mut *CURRENT_ANIMATION.lock().unwrap());
+        } else {
+            let mut current = CURRENT_ANIMATION.lock().unwrap();
+            current.update(strip.clone());
         }
-        if has_changed {
-            let lock = message_mutex.lock().unwrap();
-            animations[local_status as usize].on_message(lock.clone());
-        }
-        animations[local_status as usize].update(strip.clone());
     }
 }
