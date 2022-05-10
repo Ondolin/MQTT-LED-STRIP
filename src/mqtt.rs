@@ -1,3 +1,4 @@
+use angular_units::Deg;
 use futures::{executor::block_on, stream::StreamExt};
 use paho_mqtt as mqtt;
 use paho_mqtt::Message;
@@ -6,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::{process, time::Duration};
 
-use crate::{set_animation, NEW_ANIMATION};
+use crate::{set_animation, PIXEL_NUMBER};
 
 const TOPICS: &[&str] = &[
     "/LED-STRIP/status",
@@ -73,11 +74,35 @@ pub(crate) fn mqtt_setup(
 
                     if let Some(animation_name) = animation_name {
                         match animation_name.to_lowercase().as_str() {
+                            "off" => {
+                                use crate::animation::Off;
+                                set_animation(Box::new(Off::new()));
+                            }
                             "color" => {
                                 use crate::animation::SimpleColor;
                                 if let Ok(color) = color_from_str(&msg.payload_str()) {
                                     set_animation(Box::new(SimpleColor::new(color)))
                                 }
+                            }
+                            "firework" => {
+                                use crate::animation::Firework;
+                                set_animation(Box::new(Firework::new()));
+                            }
+                            "rainbow-full" => {
+                                use crate::animation::FullRainbow;
+                                set_animation(Box::new(FullRainbow::new(6)));
+                            }
+                            "rainbow" => {
+                                use crate::animation::RainbowFade;
+                                set_animation(Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))));
+                            }
+                            "chase" => {
+                                use crate::animation::RainbowChase;
+                                set_animation(Box::new(RainbowChase::new(
+                                    Deg(0.0),
+                                    30,
+                                    *PIXEL_NUMBER,
+                                )));
                             }
                             _ => {}
                         };

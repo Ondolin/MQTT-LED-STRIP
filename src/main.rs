@@ -66,19 +66,7 @@ fn main() {
     let strip_copy = strip.clone();
 
     // animation thread
-    thread::spawn(move || {
-        //let animations: Vec<Box<dyn Animation>> = vec![
-        //    Box::new(Off::new()),
-        //    Box::new(RainbowChase::new(Deg(0.0), 30, *PIXEL_NUMBER)),
-        //    Box::new(RainbowFade::new(Deg(0.0), Deg(3.0))),
-        //    Box::new(FullRainbow::new(6)),
-        //    Box::new(Firework::new()),
-        //    Box::new(SimpleColor::new(Rgb::new(255, 0, 0))),
-        //    // Box::new(BeatDetector::new()),
-        //    //Box::new(AudioVisualizer::new()),
-        //];
-        start_strip(strip_copy, FRAMES_PER_SECOND);
-    });
+    thread::spawn(move || start_strip(strip_copy, FRAMES_PER_SECOND));
 
     // setup ctrlc handling
     let ctrl_strip_copy = strip.clone();
