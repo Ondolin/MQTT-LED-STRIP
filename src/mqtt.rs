@@ -100,6 +100,10 @@ pub(crate) fn mqtt_setup(
                                 use crate::animation::RainbowChase;
                                 set_animation(Box::new(RainbowChase::new(Deg(0.0), 30)));
                             }
+                            "wheel" => {
+                                use crate::animation::RainbowWheel;
+                                set_animation(Box::new(RainbowWheel::new(Deg(0.0), Deg(2.0))));
+                            },
                             _ => {}
                         };
                     }
