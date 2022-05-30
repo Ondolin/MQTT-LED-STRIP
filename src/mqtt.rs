@@ -104,6 +104,14 @@ pub(crate) fn mqtt_setup(
                                 use crate::animation::RainbowWheel;
                                 set_animation(Box::new(RainbowWheel::new(Deg(0.0), Deg(2.0))));
                             },
+                            "timer" => {
+                                use crate::animation::Timer;
+
+                                if let Ok(time) = &msg.payload_str().parse::<u64>() {
+                                    set_animation(Box::new(Timer::new(*time)));
+                                }
+
+                            },
                             _ => {}
                         };
                     }
