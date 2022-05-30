@@ -15,11 +15,11 @@ lazy_static! {
     static ref WHITE: Rgb<u8> = Rgb::new(255, 255, 255);
 }
 
-fn get_pixel_brightness(color: Rgb<u8>, brightness: f32) -> Rgb<u8> {
+pub fn get_pixel_brightness(color: Rgb<u8>, brightness: f32) -> Rgb<u8> {
     Rgb::new(
-        ((color.red() as f32 * brightness) as u32 % 255) as u8,
-        ((color.green() as f32 * brightness) as u32 % 255) as u8,
-        ((color.blue() as f32 * brightness) as u32 % 255) as u8,
+        ((color.red() as f32 * brightness) as u32 % 256) as u8,
+        ((color.green() as f32 * brightness) as u32 % 256) as u8,
+        ((color.blue() as f32 * brightness) as u32 % 256) as u8,
     )
 }
 
@@ -35,6 +35,10 @@ impl Strip {
 
     pub fn set_brightness(&mut self, brightness: f32) {
         self.brightness = brightness;
+    }
+
+    pub fn get_brightness(&self) -> f32 {
+        self.brightness
     }
 
     pub fn get_pixel_length(&self) -> usize {
